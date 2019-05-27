@@ -1,6 +1,6 @@
 # Spark-Registry 
 
-##Table of contents 
+### Table of contents 
 -  Introduction  
 -  State of the Art 
 -  Enhancements 
@@ -150,6 +150,7 @@ and the number of iterations to perform of the same process (read from hive and 
 - The s3 file path was: s3n://paualarco-spark-on-aws/survey_results_public.csv
 - And the number of iterations was 5 (1 until 6)(I would have liked to perform more iterations, but sadly, AWS is not a free service)
 Therefore, the spark-submit statement launched for each test (with and without Registry) on the EC2 master of the EMR cluster looked like:
+
 `spark-submit --class scala.com.paualarco.launcher.RegistryLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6
 spark-submit --class scala.com.paualarco.launcher.NoRegisrtyLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6`
 
