@@ -148,9 +148,9 @@ and the number of iterations to perform of the same process (read from hive and 
 - And the number of iterations was 5 (1 until 6)(I would have liked to perform more iterations, but sadly, AWS is not a free service)
 Therefore, the spark-submit statement launched for each test (with and without Registry) on the EC2 master of the EMR cluster looked like:
 
-`spark-submit --class scala.com.paualarco.launcher.RegistryLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6
+`spark-submit --class scala.com.paualarco.launcher.RegistryLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6`
 
-spark-submit --class scala.com.paualarco.launcher.NoRegisrtyLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6`
+`spark-submit --class scala.com.paualarco.launcher.NoRegisrtyLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6`
 
 Below screenshot shows the Application History, where all the spark applications launched in that cluster are listed but
 only the ones marked with Yellow are the ones that matter.
