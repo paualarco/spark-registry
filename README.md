@@ -1,17 +1,17 @@
-#Spark-Registry 
+# Spark-Registry 
 
 ##Table of contents 
-- [ Introduction ] 
-- [ State of the Art ]
-- [ Enhancements ]
-    - [ Spark Session Extension ]
-    - [ Spark DataFrame Extension ]
-- [ Performance tests ]
-    - [ Local ScalaTest ]
-    - [ AWS Cluster ]
+-  Introduction  
+-  State of the Art 
+-  Enhancements 
+    -  Spark Session Extension 
+    -  Spark DataFrame Extension 
+-  Performance tests 
+    -  Local ScalaTest 
+    -  AWS Cluster 
     
     
-###Introduction
+### Introduction
 
 The use of the Spark Registry, improves the performance on queries and count actions for those iterative Spark Applications that runs 
 onto an static hive data (data taken as input from hive that we know it is not going to change during the execution time of application).
@@ -19,7 +19,7 @@ It is achieved by creating an extension to the SparkSession and DataFrame API of
 In order to evaluate the improvement, the registry was tested with two mocked application, one that used it and another that not.
 That tests were executed in local using ScalaTest and also on the Cloud using AWS.
 
-###State of the Art
+### State of the Art
 The SparkRegistry object contains the logic of the two extensions of the current SparkSession and DataFrame apis. 
 An 'extension' is a new method that is appended to an existing api. This is a handy and clean procedure achieved by 
 using scala implicits. Therefore, two implicit statements were defined in our SparkRegistry class:
@@ -36,13 +36,13 @@ import the package methods in the class where we would like to have this functio
 import scala.com.paualarco.SparkRegistry._
 ```
 
-###Enhancements
+### Enhancements
 
 The objective of that Registry class was to substantially improve the elapsed times on reading and performing count
 actions on any Spark Application.
 Let´s explain the two different enhancements:
 
-####Spark Session Extension
+#### Spark Session Extension
 
 The aim of the SparkSession extension is to reduce the elapsed time for those batch applications that 
 need to access multiple times to the same hive dataset over the application lifecycle. If you are thinking, why don´t 
@@ -91,7 +91,7 @@ The query registry is a mutable HashMap that uses the SqlStatement as a key, and
 As a result, the query to hive is only performed once, the first time. But it could cause unalignment if the hive data i updated, since we are going to access
 the first snapshot that was taken.  
 
-####Data Frame Extension
+#### Data Frame Extension
 A new method was appended to the Data Frame api using the DataFrameExtension class. This was again achieved with implicit definitions.
 Te method countRegistry, is saving the count of the given DataFrame in countsRegistry HashMap, in that case 
 the dataframe hash is used as identifier or key of the given Map. What we achieve doing that is to reduce the time on performing count 
@@ -114,14 +114,14 @@ class DataFrameExtension(df: DataFrame){
 }
 ```
 
-###Performance tests
+### Performance tests
 Two processes with the same behaviour, one with registry and the other without were ran
 in order to demonstrate that the one that uses SparkRegistry is getting better total elapsed time.
 Both proocesses are written in the same class com.paualrco.scenario.PerformanceTest as noRegistryTest 
 and registryTes taking as parameter the sql statement and the number of iterations that the process will
 do. Each iteration will be composed of a query to get data from hive, and a count over the result dataframe.
 
-####Local test
+#### Local test
 The local test is performed using the scala test plugin and winutils to emulate a hive data warehouse in our machine.
 You can find this test in the test folder test.scala.com.paualarco.SparkRegistryTest in which basically 
 it is testing that the process that runs with registry is faster than the one that runs without.
@@ -136,12 +136,41 @@ it is testing that the process that runs with registry is faster than the one th
 ```
 The test was realized with a process of 20 iterations using a simple sqlQuery to a csv file of 70MB of size
 taken from stackOverflow.  
-Here you have the results of that test:
-
-![LocalScalaTest]:[localScalaTest]
+The below image shows the test result times on milliseconds:
+![localScalaTest]:[LocalScalaTest]
  
-  //hdfs dfs -rm -r /user/spark/warehouse/analytics.db/stackoverflow
-  //spark-submit --class scala.com.paualarco.launcher.RegistryLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6
-//spark-submit --class scala.com.paualarco.launcher.NoRegisrtyLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6
+#### AWS Cluster
+Until this point we have tested the Spark Registry locally by creating a mini-cluster with hadoop and hive that permitted to
+perform the needed tests.
+Therefore, the next step is to test it in a real environment, so we chose Amazon Web Service EMR to with Hadoop, Spark and Hive services.
+The input data was also stored as csv, but in that case inside a S3 bucked, that was named paualarco-spark-on-aws.
+The two launchers NoRegistryLauncher and RegistryLauncher, were ran separately, receiving as parameters the deployMode, the s3 input file path 
+and the number of iterations to perform of the same process (read from hive and count).
+- In that case the application was executed by spark-submit using yarn-client as deploy mode. 
+- The s3 file path was: s3n://paualarco-spark-on-aws/survey_results_public.csv
+- And the number of iterations was 5 (1 until 6)(I would have liked to perform more iterations, but sadly, AWS is not a free service)
+Therefore, the spark-submit statement launched for each test (with and without Registry) on the EC2 master of the EMR cluster looked like:
+`spark-submit --class scala.com.paualarco.launcher.RegistryLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6
+spark-submit --class scala.com.paualarco.launcher.NoRegisrtyLauncher spark-registry-1.0-SNAPSHOT.jar yarn-client s3n://paualarco-spark-on-aws/survey_results_public.csv 6`
 
-[localScalaTest]: img/Local%20Results.PNG
+Below screenshot shows the Application History, where all the spark applications launched in that cluster are listed but
+only the ones marked with Yellow are the ones that matter.
+![awsEmrHistoryServer]:[AwsEmrHistoryServer]
+
+As it can be appreciated, there is not a big difference between the elapsed time of the two jobs, it is 2s. Since in both jobs, what is 
+ taking most of the time are the yarn resources assignment and the data load from the input csv to hive.
+ Moreover the count is not a very expensive action, even more when there is no big data...
+Finally, it could help to understand the overall to compare the stages between the two processes.
+As it has been said, the application was based on doing five iterations of the same count action, so this actions are translated
+to stages of the application logical plan. 
+Then, the number 12 was the of stages of the spark job that did not used the SparkRegistry.
+![awsStagesNoRegistry]:[AwsStagesNoRegistry]
+
+So, the number of stages obtained for the application that used the Registry was reduced by 4. Since only the first iteration would 
+really perform a count action, the next one will use the DataFrame hash to access to the results of the first count.
+![awsStagesRegistry]:[AwsStagesRegistry]
+
+[LocalScalaTest]: img/Local%20Results.PNG
+[AwsEmrHistoryServer]: img/historyServer.PNG
+[AwsStagesNoRegistry]: img/stagesNoRegistry.PNG
+[AwsStagesRegistry]: img/stagesRegistry.PNG
