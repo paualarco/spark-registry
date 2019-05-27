@@ -1,4 +1,4 @@
-package scala.com.paualarco.launcher.test
+package scala.com.paualarco.scenario
 
 import java.lang.System.{currentTimeMillis => currentMillis}
 
@@ -7,15 +7,16 @@ import org.apache.log4j.{Level, Logger}
 import scala.com.paualarco.ResourcesPool.ss
 import scala.com.paualarco.SparkRegistry._
 
-class PerformanceTest(dbName: String, tableName: String) {
+class PerformanceTest {
   val LOG = Logger.getLogger(this.getClass)
   LOG.setLevel(Level.INFO)
-  LOG.info(s"DbName: $dbName")
-  LOG.info(s"TableName: $tableName")
 
-  def noRegistryTest(sqlStatement: String, iterations: Int): Long = {
+
+  def noRegistryTest(dbName: String, tableName: String, sqlStatement: String, iterations: Int): Long = {
     val startTime = currentMillis
-    LOG.info("Performance test with NO Registry")
+    LOG.info(s"DbName: $dbName")
+    LOG.info(s"TableName: $tableName")
+    LOG.info("Performance scenario with NO Registry")
     LOG.info(s"$iterations iterations accessing and counting to the same hive data")
     for (i <- 1 until iterations) {
       val df = ss.sql(sqlStatement)
@@ -26,9 +27,11 @@ class PerformanceTest(dbName: String, tableName: String) {
     currentMillis - startTime
   }
 
-  def registryTest(sqlStatement: String, iterations: Int): Long = {
+  def registryTest(dbName: String, tableName: String, sqlStatement: String, iterations: Int): Long = {
     val startTime = currentMillis
-    LOG.info("Performance test with Registry")
+    LOG.info(s"DbName: $dbName")
+    LOG.info(s"TableName: $tableName")
+    LOG.info("Performance scenario with Registry")
     LOG.info(s"$iterations iterations accessing and counting to the same hive data")
     for (i <- 1 until iterations) {
       val df = ss.sqlRegistry(sqlStatement)

@@ -8,7 +8,7 @@ import System.{currentTimeMillis => currentMillis}
 
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
-import scala.com.paualarco.launcher.test.{PerformanceTest, TestCommonParams}
+import scala.com.paualarco.scenario.{PerformanceTest, TestCommonParams}
 
 object RegistryLauncher extends TestCommonParams {
   val LOG = Logger.getLogger(this.getClass)
@@ -22,10 +22,9 @@ object RegistryLauncher extends TestCommonParams {
 
     setUpEnvironment(s3FilePath)
 
-    val test = new PerformanceTest(dbName, tableName)
-    val sqlStatement = s"SELECT * FROM $dbName.`$tableName`"
-    val registry = test.registryTest(sqlStatement, iterations.toInt)
-    LOG.info(s"Registry test elapsed time: $registry")
+    val sqlStatement = s"SELECT * FROM $dbName.`$registryTableName`"
+    val registry = (new PerformanceTest()).registryTest(dbName, registryTableName, sqlStatement, iterations.toInt)
+    LOG.info(s"Registry scenario elapsed time: $registry")
   }
 
 }

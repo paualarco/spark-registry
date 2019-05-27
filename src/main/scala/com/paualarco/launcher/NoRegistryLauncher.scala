@@ -4,7 +4,7 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
 import scala.com.paualarco.ResourcesPool.{hs, ss}
-import scala.com.paualarco.launcher.test.{PerformanceTest, TestCommonParams}
+import scala.com.paualarco.scenario.{PerformanceTest, TestCommonParams}
 
 object NoRegistryLauncher extends TestCommonParams{
   val LOG = Logger.getLogger(this.getClass)
@@ -19,10 +19,9 @@ object NoRegistryLauncher extends TestCommonParams{
 
     setUpEnvironment(s3FilePath)
 
-    val test = new PerformanceTest(dbName, tableName)
-    val sqlStatement = s"SELECT * FROM $dbName.`$tableName`"
-    val noRegistry = test.noRegistryTest(sqlStatement, iterations.toInt)
-    LOG.info(s"No registry test elapsed time: $noRegistry")
+    val sqlStatement = s"SELECT * FROM $dbName.`$noRegistryTableName`"
+    val noRegistry = (new PerformanceTest()).noRegistryTest(dbName, noRegistryTableName, sqlStatement, iterations.toInt)
+    LOG.info(s"No registry scenario elapsed time: $noRegistry")
   }
 
 }
